@@ -1,7 +1,6 @@
 # Macro-Pool
 GitHub GameOff 2020 (theme: MOONSHOT)
 
-Description:
 It's pool, but with planets! Throw the moon as a cue ball and send planets into black hole.
 Exploit planets FXs to score the maximum possible score.
 
