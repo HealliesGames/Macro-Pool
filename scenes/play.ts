@@ -236,23 +236,25 @@ export class Play extends Phaser.Scene {
               this.start = false;
               this.moonCanShoot = false;
               this.input.off("pointerup");
-
-              this.tweens.add({
-                targets: [this.moon.render, this.moon.txInfo, this.moon.iTarget],
-                alpha: 0,
-                duration: 1000,
-                ease: "Sine",
-                onComplete: function() { 
-                  if(this.moon != null) {
-                    this.moon.render.destroy(); 
-                    this.moon.txInfo.destroy();
-                    this.moon.iTarget.destroy();
-                    this.moon.destroy();
-                    this.moon = null;
-                  }
-                },
-                onCompleteScope: this
-              })
+              
+              if(this.moon != null) {
+                this.tweens.add({
+                  targets: [this.moon.render, this.moon.txInfo, this.moon.iTarget],
+                  alpha: 0,
+                  duration: 1000,
+                  ease: "Sine",
+                  onComplete: function() { 
+                    if(this.moon != null) {
+                      this.moon.render.destroy(); 
+                      this.moon.txInfo.destroy();
+                      this.moon.iTarget.destroy();
+                      this.moon.destroy();
+                      this.moon = null;
+                    }
+                  },
+                  onCompleteScope: this
+                })
+              }
             
 
             // Disable FX text show.
