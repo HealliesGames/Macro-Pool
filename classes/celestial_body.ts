@@ -295,6 +295,10 @@ export class CelestialBody extends Phaser.Physics.Matter.Image
         // Save angle state.
         var currentAngle = this.angle;
 
+        // Save velocity.
+        var currentVelX = this.body.velocity.x;
+        var currentVelY = this.body.velocity.y;
+
         // Set circular collision body.
         if(!this.inHoleAnim) {
             this.setBody({
@@ -332,6 +336,9 @@ export class CelestialBody extends Phaser.Physics.Matter.Image
 
         // Set angle state.
         this.angle = currentAngle;
+
+        // Set velocity.
+        this.setVelocity(currentVelX, currentVelY);
     }
 
     setRenderScale(){
