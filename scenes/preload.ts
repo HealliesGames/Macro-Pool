@@ -28,9 +28,18 @@ export class Preload extends Phaser.Scene {
     this.load.image("neptune","assets/images/neptune_texture.png");
     this.load.image("uranus","assets/images/uranus_texture.png");
 
+    // Centauri planets & stars
+    this.load.image("rigil_kentaurus","assets/images/rigil_kentaurus.png");
+    this.load.image("tolimani","assets/images/tolimani.png");
+    this.load.image("proxima_centauri","assets/images/proxima_centauri.png");
+    this.load.image("proxima_centauri_b","assets/images/proxima_centauri_b.png");
+    this.load.image("proxima_centauri_c","assets/images/proxima_centauri_c.png");
+
     // Blend textures.
     this.load.image("planet_mask", "assets/images/planet_mask.png");
     this.load.image("planet_edge", "assets/images/planet_edge.png");
+    this.load.image("sun_mask", "assets/images/sun_mask.png");
+    this.load.image("sun_edge", "assets/images/sun_edge.png");
 
     // Black hole image.
     this.load.image("black_hole", "assets/images/black_hole.png");
@@ -44,6 +53,7 @@ export class Preload extends Phaser.Scene {
     this.load.image("pool_table", "assets/images/pool_table.png");
     this.load.image("title", "assets/images/title.png");
     this.load.image("sun", "assets/images/sun.png");
+    this.load.image("alpha_centauri", "assets/images/alpha_centauri.png");
     this.load.image("howto", "assets/images/how_to.png");
     this.load.image("howto_hover", "assets/images/how_to_hover.png");
     

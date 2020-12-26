@@ -1,13 +1,14 @@
 import { GAME_HEIGHT, GAME_WIDTH, randomNumber, CB_SIZE, pointDistance, cbody} from "../game";
-import { Play } from "../scenes/play";
-import { CelestialBody } from "./celestial_body";
+import { PlayCentauri } from "../scenes/play_centauri";
+import { PlaySun } from "../scenes/play_sun";
 
 export class BlackHole extends Phaser.GameObjects.Sprite
 { 
-    scene : Play;                   // Instance scene.
-    refScale : number               // Reference scale.
+    scene : PlaySun | PlayCentauri;                 // Instance scene.
+    refScale : number;               // Reference scale.
+    modality : number;
 
-    constructor(paramScene : Play, paramX, paramY) {
+    constructor(paramScene, paramX, paramY, modality) {
         super(paramScene, paramX, paramY, "black_hole");
 
         // Assign instance scene.
@@ -15,6 +16,9 @@ export class BlackHole extends Phaser.GameObjects.Sprite
 
         // Set normal scale.
         this.refScale = 1;
+
+        // Set if is playing on Sun or Alpha Centauri
+        this.modality = modality;
 
         // Start disappeared.
         this.setScale(0);
@@ -64,7 +68,7 @@ export class BlackHole extends Phaser.GameObjects.Sprite
             this.y = randomNumber(CB_SIZE, GAME_HEIGHT - CB_SIZE);
 
             // If last planet is jupiter (gravity effect), spawn on bottom.
-            if(this.scene.planets.length == 1)
+            if(this.scene.planets.length == 1 && this.modality == 0)
                 if(this.scene.planets[0].pType == cbody.JUPITER)
                     this.y = GAME_HEIGHT - CB_SIZE;
 
@@ -90,6 +94,15 @@ export class BlackHole extends Phaser.GameObjects.Sprite
             ease: "Cubic",
             duration: 400
         })
+
+        if(this.modality == 1) {
+            this.scene.tweens.add({
+                targets: this.scene.txTimer,
+                y: fxPos,
+                ease: "Cubic",
+                duration: 400
+            })
+        }
         
         this.scene.sound.play("whoosh");
     }
@@ -116,11 +129,19 @@ export class BlackHole extends Phaser.GameObjects.Sprite
             duration: 3000,
             delay: 1000,
             onComplete: function(){
-                this.scene.scene.start("FinalScore", {
-                    elapsedTime: this.scene.elapsedTime,
-                    nShoot: this.scene.nShoot,
-                    nMoonBlack: this.scene.nMoonBlack
-                });
+                switch(this.modality) {
+                    case 0:
+                    this.scene.scene.start("FinalScoreSun", {
+                        elapsedTime: this.scene.elapsedTime,
+                        nShoot: this.scene.nShoot,
+                        nMoonBlack: this.scene.nMoonBlack
+                    }); break;
+
+                    case 1:
+                    this.scene.scene.start("FinalScoreCentauri", {
+                        nShoot: this.scene.nShoot
+                    }); break;
+                }
             },
 
             onCompleteScope: this

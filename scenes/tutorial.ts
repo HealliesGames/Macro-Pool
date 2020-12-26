@@ -33,7 +33,7 @@ export class Tutorial extends Phaser.Scene {
       this.spaceOverlay.setAlpha(.3);
 
       // Instantiate moon.
-      this.moon = new Moon(this, GAME_WIDTH / 2, GAME_HEIGHT / 2);
+      this.moon = new Moon(this, GAME_WIDTH / 2, GAME_HEIGHT / 2, 0);
       this.moon.canShoot = true;
       this.blackHole = this.add.sprite(-64, -64, "black_hole");
       
@@ -42,15 +42,15 @@ export class Tutorial extends Phaser.Scene {
       this.tutorialStr[1] = "HOLD LEFT BUTTON TO CHARGE\nAND RELEASE TO SHOOT";
       this.tutorialStr[2] = "RELEASE LEFT BUTTON ON MOON TO\nCANCEL CHARGE";
       this.tutorialStr[3] = "USE THE MOON TO PROPEL PLANETS\nINTO BLACK HOLE";
-      this.tutorialStr[4] = "PLACE CURSOR ON PLANET TO SHOW ITS FX";
-      this.tutorialStr[5] = "THE FX WILL CHANGE EVERY\nTURN DEPENDING ON WHICH PLANET IS\n NEAREST THE MOON";
-      this.tutorialStr[6] = "PLACE CURSOR ON MOON TO SHOW\nNEAREST PLANET";
-      this.tutorialStr[7] = "USE AS LESS AS POSSIBLE SHOOTS AND\nBE FAST TO GET THE HIGHEST SCORE";
-      this.tutorialStr[8] = "RIGHT CLICK FOR MENU";
+      this.tutorialStr[4] = "CLASSIC MODE:\nTHE FX WILL CHANGE EVERY\nTURN DEPENDING ON WHICH PLANET IS\n NEAREST THE MOON";
+      this.tutorialStr[5] = "PLACE CURSOR ON MOON TO SHOW\nNEAREST PLANET";
+      this.tutorialStr[6] = "TIME ATTACK MODE:\nTHE FX WILL CHANGE EVERY\n5 SECONDS RANDOMLY";
+      this.tutorialStr[7] = "TO QUIT A GAME,\nHOLD RIGHT BUTTON FOR 3 SECONDS";
+      this.tutorialStr[8] = "ESTABLISH THE HIGHEST RECORD YOU CAN";
 
       this.tutIndex = 0;
       //@ts-ignore
-      this.txTutorial = this.add.bitmapText(GAME_WIDTH / 2, 32, "game", this.tutorialStr[0], 20, 1).setOrigin(.5);
+      this.txTutorial = this.add.bitmapText(GAME_WIDTH / 2, 8, "game", this.tutorialStr[0], 20, 1).setOrigin(.5, 0);
       this.txTutorial.setDepth(10);
 
       this.input.on('pointerdown', function (pointer) {
@@ -60,7 +60,7 @@ export class Tutorial extends Phaser.Scene {
 
           if(this.tutIndex == 3){
             for(let i = 0; i < 2; i++) {
-              let p = new CelestialBody(this,  GAME_WIDTH / 2 - 16 + (i*32), GAME_HEIGHT / 2, i);
+              let p = new CelestialBody(this,  GAME_WIDTH / 2 - 16 + (i*32), GAME_HEIGHT / 2, 0, i);
               this.planets.push(p);
             } 
           }

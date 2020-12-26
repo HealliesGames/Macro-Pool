@@ -12,10 +12,10 @@ export class Moon extends CelestialBody {
     iTarget : Phaser.GameObjects.Sprite;                           // Target sprite.
     charging : boolean;
 
-    constructor(paramScene, paramX, paramY) {
+    constructor(paramScene, paramX, paramY, modality) {
 
         // Call CelestialBody constructor.
-        super(paramScene, paramX, paramY, cbody.MOON);
+        super(paramScene, paramX, paramY, modality, cbody.MOON);
 
         // Create aiming arrow.
         this.arrow = new Phaser.GameObjects.Sprite(this.scene, this.x, this.y, "arrow");
@@ -28,16 +28,17 @@ export class Moon extends CelestialBody {
         // Initialize shoot force.
         this.shootForce = 0;
 
+        // Create trajectory line and add to scene.
+        this.trajectory = new Phaser.GameObjects.Graphics(this.scene).setDepth(1);
+        this.scene.add.existing(this.trajectory);
+        
         // Create nearest planet line and add to scene.
         this.iLine = new Phaser.GameObjects.Graphics(this.scene).setDepth(1);
         this.scene.add.existing(this.iLine);
 
-        // Create trajectory line and add to scene.
-        this.trajectory = new Phaser.GameObjects.Graphics(this.scene).setDepth(1);
-        this.scene.add.existing(this.trajectory);
-
         // Create "nearest" text and add to scene.
-        this.iNearPlanet = new Phaser.GameObjects.BitmapText(this.scene, 0, 0, "game", "NEAREST", 11, 1).setOrigin(.5, .5);
+        var pText = this.modality == 0 ? "NEAREST" : "";
+        this.iNearPlanet = new Phaser.GameObjects.BitmapText(this.scene, 0, 0, "game", pText, 11, 1).setOrigin(.5, .5);
         this.iNearPlanet.setDepth(1);
         this.scene.add.existing(this.iNearPlanet);
 
@@ -54,12 +55,14 @@ export class Moon extends CelestialBody {
                     this.scene.bChangedPos = false;
                     
                     // Hide FX text.
+                    if(this.modality == 0) {
                     this.scene.tweens.add({
                         targets: this.scene.txFx,
                         ease: "Cubic",
                         alpha: 0,
                         duration: 300
                       })
+                    }
                     
                     // If FX earthquake is active, perform it.
                     if(this.scene.isEarthquake) {
@@ -68,7 +71,8 @@ export class Moon extends CelestialBody {
                     }
 
                     // Increase shoot number
-                    this.scene.nShoot += 1;
+                    if(this.modality == 0)
+                        this.scene.nShoot += 1;
                 }
 
                 // Reset shoot charge.
@@ -229,22 +233,25 @@ export class Moon extends CelestialBody {
         }  
 
         if(pNear != null) {
-        // Set line and text info for nearest planet.
-        this.iLine.clear();
-        this.iLine.lineStyle(1, 0x00FF00, this.iTarget.alpha);
-        this.iLine.lineBetween(this.x, this.y, pNear.x, pNear.y);
+            if(this.modality == 0) {
+            // Set line and text info for nearest planet.
+            this.iLine.clear();
+            this.iLine.lineStyle(1, 0x00FF00, this.iTarget.alpha);
+            this.iLine.lineBetween(this.x, this.y, pNear.x, pNear.y);
 
-        var ang = pointAngle(this.x, this.y, pNear.x, pNear.y);
+            var ang = pointAngle(this.x, this.y, pNear.x, pNear.y);
+        
+        
+            this.iNearPlanet.setRotation(ang);
+            this.iNearPlanet.setPosition( 
+                                        (this.x + pNear.x) / 2 + (Math.cos(ang - Phaser.Math.DegToRad(90)) * 10 ),
+                                        (this.y + pNear.y) / 2 + (Math.sin(ang - Phaser.Math.DegToRad(90)) * 10 ),
+                                        );
+            this.iNearPlanet.setAlpha(this.iTarget.alpha);
 
-        this.iNearPlanet.setRotation(ang);
-        this.iNearPlanet.setPosition( 
-                                    (this.x + pNear.x) / 2 + (Math.cos(ang - Phaser.Math.DegToRad(90)) * 10 ),
-                                    (this.y + pNear.y) / 2 + (Math.sin(ang - Phaser.Math.DegToRad(90)) * 10 ),
-                                    );
-        this.iNearPlanet.setAlpha(this.iTarget.alpha);
-
-        // Set scene "moonNearestPlanet"
-        this.scene.moonNearestPlanet = pNear;
+            // Set scene "moonNearestPlanet"
+            this.scene.moonNearestPlanet = pNear;
+            }
         } else {
             // If no planets, hide line and text.
             this.iNearPlanet.setAlpha(0);

@@ -5,9 +5,11 @@ import "phaser";
 import { Preload } from "./scenes/preload";
 import { Introduction } from "./scenes/introduction";
 import { Tutorial } from "./scenes/tutorial";
-import { Play } from "./scenes/play";
+import { PlaySun } from "./scenes/play_sun";
+import { PlayCentauri } from "./scenes/play_centauri";
 import { Menu } from "./scenes/menu";
-import { FinalScore } from "./scenes/final_score";
+import { FinalScoreSun } from "./scenes/final_score_sun";
+import { FinalScoreCentauri } from "./scenes/final_score_centauri";
 
 // Original game canvas width.
 export const GAME_WIDTH = 400;
@@ -25,21 +27,27 @@ var config : Phaser.Types.Core.GameConfig = {
     width: GAME_WIDTH,                            // Set game scale width.
     height: GAME_HEIGHT,                          // Set game scale height.
   },
-  
+
+  fps: {
+    target: 60,
+    forceSetTimeOut: true
+  },
+
   physics: {
     default: "matter",                            // Matter.js physics.
     matter:{
       velocityIterations : .001,                  // Infinitesimal resting collision detection.
       gravity: {                                  // No gravity.
         x: 0, 
-        y: 1
+        y: .3
       },
       debug : false                               // Don't show collision bodies.
     }
   },
 
   render: { pixelArt: true, antialias: false},    // Disable antialising.
-  scene: [Preload, Introduction, Menu, Tutorial, Play, FinalScore]  // Load the scenes in the list.
+  scene: [Preload, Introduction, Menu, Tutorial, PlaySun, PlayCentauri, 
+  FinalScoreSun, FinalScoreCentauri]                                  // Load the scenes in the list.
 }
 
 const game = new Phaser.Game(config);             // Create game object.
@@ -54,6 +62,14 @@ export enum cbody {
   JUPITER, SATURN,
   URANUS, NEPTUNE,
   MOON
+}
+
+export enum cbody_centauri {
+  RIGIL_KENTAURUS, 
+  TOLIMANI,
+  PROXIMA_CENTAURI_B,
+  PROXIMA_CENTAURI,
+  PROXIMA_CENTAURI_C
 }
 
 // Celestial bodies pixel size.

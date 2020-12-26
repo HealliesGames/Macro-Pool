@@ -1,5 +1,6 @@
-import { GAME_HEIGHT, GAME_WIDTH, CB_SIZE, CB_MASS, cbody, pointDistance, pointAngle} from "../game";
-import { Play } from "../scenes/play";
+import { GAME_HEIGHT, GAME_WIDTH, CB_SIZE, CB_MASS, cbody, pointDistance, pointAngle, cbody_centauri} from "../game";
+import { PlayCentauri } from "../scenes/play_centauri";
+import { PlaySun } from "../scenes/play_sun";
 
 // Tone down velocity for rotation.
 export const VELOCITY_K = 1.5;
@@ -35,37 +36,58 @@ export class CelestialBody extends Phaser.Physics.Matter.Image
     txInfo : Phaser.GameObjects.BitmapText;            // Information show.  
     iTarget : Phaser.GameObjects.Sprite;               // Target sprite.
 
-    scene : Play;                                      // Instance scene.
-    
+    scene : PlaySun | PlayCentauri;                    // Instance scene.
+    modality : number;
 
-    constructor(paramScene, paramX, paramY, paramType) {
+    constructor(paramScene, paramX, paramY, modality, paramType) {
 
         // Check the celestial body type and assign info and texture.
         var texture, text;
         
-        switch(paramType) {
-            case cbody.MERCURY: texture = "mercury"; 
-            text =      "NAME: MERCURY\nFX: SHRINK";    break;
-            case cbody.VENUS:     texture = "venus";   
-            text =          "NAME: VENUS\nFX: WARP";    break;
-            case cbody.EARTH:     texture = "earth";   
-            text =    "NAME: EARTH\nFX: EARTHQUAKE";    break;
-            case cbody.MARS:       texture = "mars";    
-            text =     "NAME: MARS\nFX: ATTRACTION";    break;
-            case cbody.JUPITER: texture = "jupiter"; 
-            text =     "NAME: JUPITER\nFX: GRAVITY";    break;
-            case cbody.SATURN:   texture = "saturn";  
-            text =    "NAME: SATURN\nFX: REPULSION";    break;
-            case cbody.URANUS:   texture = "uranus";  
-            text = "NAME: URANUS\nFX: SUPERMASSIVE";    break;
-            case cbody.NEPTUNE: texture = "neptune"; 
-            text =       "NAME: NEPTUNE\nFX: SLIDE";    break;
-            case cbody.MOON:       texture = "moon";  
-            text =                           "MOON";    break;
-        }
+        switch(modality) {
+            case 0:
+            switch(paramType) {
+                case cbody.MERCURY: texture = "mercury"; 
+                text =      "NAME: MERCURY\nFX: SHRINK";    break;
+                case cbody.VENUS:     texture = "venus";   
+                text =          "NAME: VENUS\nFX: WARP";    break;
+                case cbody.EARTH:     texture = "earth";   
+                text =    "NAME: EARTH\nFX: EARTHQUAKE";    break;
+                case cbody.MARS:       texture = "mars";    
+                text =     "NAME: MARS\nFX: ATTRACTION";    break;
+                case cbody.JUPITER: texture = "jupiter"; 
+                text =     "NAME: JUPITER\nFX: GRAVITY";    break;
+                case cbody.SATURN:   texture = "saturn";  
+                text =    "NAME: SATURN\nFX: REPULSION";    break;
+                case cbody.URANUS:   texture = "uranus";  
+                text = "NAME: URANUS\nFX: SUPERMASSIVE";    break;
+                case cbody.NEPTUNE: texture = "neptune"; 
+                text =       "NAME: NEPTUNE\nFX: SLIDE";    break;
+                case cbody.MOON:       texture = "moon";  
+                text =                           "MOON";    break;
+            } break;
+
+            case 1:
+            switch(paramType) {
+                case cbody_centauri.RIGIL_KENTAURUS: texture = "rigil_kentaurus"; 
+                text =      "NAME: RIGIL KENTAURUS\nTYPE: STAR";    break;
+                case cbody_centauri.TOLIMANI:     texture = "tolimani";   
+                text =      "NAME: TOLIMANI\nTYPE: STAR";    break;
+                case cbody_centauri.PROXIMA_CENTAURI_B:     texture = "proxima_centauri_b";   
+                text =      "NAME: PROXIMA CENTAURI B\nTYPE: PLANET";    break;
+                case cbody_centauri.PROXIMA_CENTAURI:       texture = "proxima_centauri";    
+                text =     "NAME: PROXIMA CENTAURI\nTYPE: STAR";    break;
+                case cbody_centauri.PROXIMA_CENTAURI_C: texture = "proxima_centauri_c"; 
+                text =     "NAME: PROXIMA CENTAURI C\nTYPE: PLANET";    break;
+                case cbody.MOON:       texture = "moon";  
+                text =                           "MOON";    break;
+            } break;
+    }
 
         // Call "Phaser.Physics.Matter.Image" super constructor.
         super(paramScene.matter.world, paramX, paramY, texture, 0, {restitution: .8});
+
+        this.modality = modality;
 
         // Set up bitmap text.
         this.txInfo = new Phaser.GameObjects.BitmapText(paramScene, this.x, this.y, "game", text, 11, 1);
@@ -85,6 +107,8 @@ export class CelestialBody extends Phaser.Physics.Matter.Image
 
         // Assign instance scene.
         this.scene = paramScene;
+
+        this.presentationTween = null;
 
         // Create the planet tile sprite.
         this.sphereTile = new Phaser.GameObjects.TileSprite(this.scene, this.x, this.y, CB_SIZE, CB_SIZE, texture);
@@ -201,53 +225,57 @@ export class CelestialBody extends Phaser.Physics.Matter.Image
             this.setPosition( this.body.position.x, GAME_HEIGHT + CB_SIZE / 2);
         
         // When celestial body is near black hole.
-        if(!this.exiting) {
-            if(pointDistance(this.body.position.x, this.body.position.y, this.scene.blackHole.x, this.scene.blackHole.y) 
-            < CB_SIZE * this.scene.blackHole.scale * 1.2) {
+        if(pointDistance(this.body.position.x, this.body.position.y, this.scene.blackHole.x, this.scene.blackHole.y) 
+        < CB_SIZE * this.scene.blackHole.scale * 1.2) {
 
-                if(!this.inHoleAnim) {
+            if(!this.inHoleAnim && !this.exiting) {
 
-                    // Is animating.
-                    this.inHoleAnim = true;
+                // Is animating.
+                this.inHoleAnim = true;
 
-                    // Destroy info sprite and text.
-                    this.txInfo.destroy();
-                    this.iTarget.destroy();
+                // Destroy info sprite and text.
+                this.txInfo.destroy();
+                this.iTarget.destroy();
 
-                    // Disable body collision.
-                    this.setPhysics();
+                // Disable body collision.
+                this.setPhysics();
 
-                    // Stop presentation tween.
+                // Stop presentation tween.
+                if(this.presentationTween != null)
                     this.presentationTween.stop();
-
-                    // Set position to black hole.
-                    this.scene.tweens.add({
-                        targets: this,
-                        x: this.scene.blackHole.x,
-                        y: this.scene.blackHole.y,
-                        ease: "Cubic",
-                        duration: 1000
-                    });
-
-                    // Disappear.
-                    this.scene.tweens.add({
-                        targets: this.render,
-                        scale: 0,
-                        ease: "Cubic",
-                        duration: 1000,
-                        onComplete: function(){
-                            this.render.setVisible(false);
-                        },
-                        onCompleteScope: this
-                    }); 
-
-                    this.scene.sound.play("in_hole");
-                    
-                    // Set is in hole for destroying.
-                    this.scene.time.delayedCall(1100, function(){ this.inHole = true; }, [], this);
+                
+                if(this.modality == 1) {
+                    this.scene.nShoot ++;
                 }
+                
+                // Set position to black hole.
+                this.scene.tweens.add({
+                    targets: this,
+                    x: this.scene.blackHole.x,
+                    y: this.scene.blackHole.y,
+                    ease: "Cubic",
+                    duration: 1000
+                });
+
+                // Disappear.
+                this.scene.tweens.add({
+                    targets: this.render,
+                    scale: 0,
+                    ease: "Cubic",
+                    duration: 1000,
+                    onComplete: function(){
+                        this.render.setVisible(false);
+                    },
+                    onCompleteScope: this
+                }); 
+
+                this.scene.sound.play("in_hole");
+                
+                // Set is in hole for destroying.
+                this.scene.time.delayedCall(1100, function(){ this.inHole = true; }, [], this);
             }
-        }
+        } else this.exiting = false;
+        
 
         // Apply matter physics state to the render textures.
         this.render.setPosition(this.body.position.x, this.body.position.y);
@@ -297,7 +325,7 @@ export class CelestialBody extends Phaser.Physics.Matter.Image
         if(this.isGravity) this.setBounce(.8);
 
         // Set mass.
-        this.setMass(this.isMini || this.isAttraction ? CB_MASS / 10 : CB_MASS);
+        this.setMass(this.isMini? CB_MASS / 10 : CB_MASS);
 
         // Set collision callback.
         this.setOnCollide(this.collisionCallback.bind(this));
@@ -308,6 +336,7 @@ export class CelestialBody extends Phaser.Physics.Matter.Image
 
     setRenderScale(){
         // Stop the presentation tween.
+        if(this.presentationTween != null)
         this.presentationTween.stop();
 
         // Adjust planet rendering scale with body.
@@ -321,8 +350,10 @@ export class CelestialBody extends Phaser.Physics.Matter.Image
 
     collisionCallback() {
         // Play bounce sound.
-        let volume = Math.abs(this.body.velocity.x) + Math.abs(this.body.velocity.y);
-        if(volume > .9) this.scene.sound.play("bump", {volume: volume / 30});
+        if(!this.exiting) {
+            let volume = Math.abs(this.body.velocity.x) + Math.abs(this.body.velocity.y);
+            if(volume > .9) this.scene.sound.play("bump", {volume: volume / 30});
+        }
     }
 
 
@@ -348,25 +379,31 @@ export class CelestialBody extends Phaser.Physics.Matter.Image
     
     // Attract method.
     attract(pList) {
+        let dist = GAME_WIDTH * GAME_HEIGHT;
+        let nP = null;
+
         for(let i = 0; i < pList.length; i++) {
             let p = pList[i];
             if(p.pType != this.pType) {
-                var dist = pointDistance(this.body.position.x, this.body.position.y, p.body.position.x, p.body.position.y); 
-
-                if( dist < CB_SIZE * 3) {
-                    let angle = pointAngle(this.body.position.x, this.body.position.y,
-                                        p.body.position.x, p.body.position.y);
-                    
-                    let spdX = this.body.velocity.x / 1.2;
-                    let spdY = this.body.velocity.y / 1.2;
-
-                    this.setVelocity(spdX + Math.cos(angle) / RA_ATT, spdY + Math.sin(angle) / RA_ATT);
-                    if(dist < CB_SIZE * 1.1) {
-                        this.setVelocity(0);
-                    }
-                } 
+                var tDist = pointDistance(this.body.position.x, this.body.position.y, p.body.position.x, p.body.position.y); 
+                if(tDist < dist) {
+                    nP = p;
+                    dist = tDist;
+                }
             }
         }
+
+       
+        if(nP != null)
+            if( dist <= CB_SIZE * 3 && dist > CB_SIZE * 1.5) {
+                let angle = pointAngle(this.body.position.x, this.body.position.y,
+                    nP.body.position.x, nP.body.position.y);
+                
+                let spdX = this.body.velocity.x + (Math.cos(angle) / (RA_ATT * 3));
+                let spdY = this.body.velocity.y + (Math.sin(angle) / (RA_ATT * 3));
+
+                this.setVelocity(spdX, spdY);
+            } 
     } 
     
 }
